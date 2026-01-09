@@ -1,0 +1,8 @@
+data/
+data_Set/
+legal_rag_setup/chroma_db_legal_pakistani
+legal_rag_setup/legal_assistant_db.jsonl
+merging data/instruction.json
+merging data/lima_chat_sample.json
+merging data/legal_data.json
+merging data/refusal_examples.json
