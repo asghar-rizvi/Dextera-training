@@ -67,17 +67,9 @@ def load_and_process_pdfs(folder_path: str) -> List[Any]:
 
 
 def create_hybrid_chunks_with_progress(documents: List[Any]) -> List[Any]:
-    """
-    Creates chunks using a hybrid approach, but with a progress bar for the semantic step.
-    NOTE: This processes in batches, which can be less accurate at boundaries.
-    """
     if not documents:
         return []
-
-    print("Starting hybrid chunking process...")
-    
-    # Step 1: Initial Recursive Splitting (this is fast)
-    print("  [1/2] Performing initial recursive split...")
+    print("Performing initial recursive split...")
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=CONFIG["INITIAL_CHUNK_SIZE"],
         chunk_overlap=CONFIG["INITIAL_CHUNK_OVERLAP"],
@@ -86,8 +78,7 @@ def create_hybrid_chunks_with_progress(documents: List[Any]) -> List[Any]:
     initial_chunks = text_splitter.split_documents(documents)
     print(f"      Created {len(initial_chunks)} initial chunks.")
 
-    # Step 2: Semantic Splitting with Progress
-    print("  [2/2] Performing semantic split (this will take time)...")
+    print("Performing semantic split (this will take time)...")
     embeddings = HuggingFaceEmbeddings(
         model_name=CONFIG["EMBEDDING_MODEL"],
         model_kwargs={'device': 'cpu'}
@@ -103,7 +94,6 @@ def create_hybrid_chunks_with_progress(documents: List[Any]) -> List[Any]:
     
     for i in tqdm(range(0, len(initial_chunks), batch_size), desc="Semantic Splitting Progress"):
         batch = initial_chunks[i:i+batch_size]
-        # This is the slow part, but now we see it progress batch by batch
         split_batch = semantic_splitter.split_documents(batch)
         final_chunks.extend(split_batch)
         
