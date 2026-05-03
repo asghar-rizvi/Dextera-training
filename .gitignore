@@ -7,3 +7,7 @@ merging data/lima_chat_sample.json
 merging data/legal_data.json
 merging data/refusal_examples.json
 pak_legal_llama_3b.gguf
+mongoAtlasSetup/.env
+mongoAtlasSetup/laws.json
+mongoAtlasSetup/laws_part_2.json
+mongoAtlasSetup/legal_assistant_db.jsonl

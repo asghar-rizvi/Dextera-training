@@ -16,7 +16,6 @@ with open('combined_data/merged_dataset_no_filenames.json', 'r', encoding='utf-8
             }
             instructions.append(context_pair)
         print(Fore.YELLOW + f"Processed chunk {key} with {len(chunk['generated'])} Q&A pairs")
-        print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 
 with open('data/instruction.json', 'w', encoding='utf-8') as f:
     json.dump(instructions, f, indent=2, ensure_ascii=False)

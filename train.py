@@ -7,10 +7,8 @@ from transformers import (
     AutoTokenizer,
 )
 
-# 1. MODEL CONFIGURATION
 model_id = "meta-llama/Llama-3.2-3B-Instruct"
 
-# 2. LEGAL SYSTEM PROMPT
 NEW_SYSTEM_PROMPT = """Role: Specialized Expert in Pakistani Criminal Law (PPC & CrPC).
 Rules of Engagement:
 1. SCOPE: You only answer queries related to Pakistani criminal statutes, precedents, and procedures.
@@ -22,14 +20,11 @@ Rules of Engagement:
 Constraint: Do not provide personal opinions or general legal advice.
 Reminder: Act Normal when greet and If i asked anything other than pakistan criminal law just SAY: 'NOT A PAKISTAN CRIMINAL LAW QUERY '"""
 
-# 3. LOAD TOKENIZER
 print(f"Loading tokenizer: {model_id}...")
 tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
 tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right" 
 
-# 4. LOAD MODEL
-# Changed to 'dtype' to fix deprecated warning
 print(f"Loading BF16 Model: {model_id}...")
 model = AutoModelForCausalLM.from_pretrained(
     model_id,
@@ -37,7 +32,6 @@ model = AutoModelForCausalLM.from_pretrained(
     device_map="auto",
 )
 
-# 5. PEFT (LoRA) SETUP
 model.enable_input_require_grads()
 model.gradient_checkpointing_enable()
 
@@ -52,7 +46,6 @@ peft_config = LoraConfig(
 model = get_peft_model(model, peft_config)
 model.print_trainable_parameters()
 
-# 6. DATASET PREPARATION
 def format_prompt(examples):
     texts = []
     for q, a in zip(examples["question"], examples["answer"]):
@@ -70,25 +63,23 @@ print("Loading dataset...")
 dataset = load_dataset("data", split="train") 
 dataset = dataset.map(format_prompt, batched=True)
 
-# 7. TRAINING CONFIGURATION (Memory Optimized)
 training_args = SFTConfig(
     output_dir="./llama_pak_legal_v1",
     max_length=2048,
-    per_device_train_batch_size=2,        # Reduced from 4 to save VRAM
-    gradient_accumulation_steps=8,     # Increased to keep effective batch size = 16
+    per_device_train_batch_size=2,        
+    gradient_accumulation_steps=8,     
     learning_rate=2e-5,
     bf16=True,
     logging_steps=10,
     num_train_epochs=1,
     save_steps=100,
-    optim="paged_adamw_8bit",          # FIX: Use 8-bit optimizer to save ~8GB VRAM
+    optim="paged_adamw_8bit",         
     dataset_text_field="text",
-    packing=False,                     # Disabled for better memory stability
+    packing=False,                    
     gradient_checkpointing=True,
     report_to="none"
 )
 
-# 8. TRAIN
 print("Starting training on L4 GPU...")
 trainer = SFTTrainer(
     model=model,
@@ -98,7 +89,6 @@ trainer = SFTTrainer(
 
 trainer.train()
 
-# 9. SAVE
 model.save_pretrained("pak_legal_llama_adapter")
 tokenizer.save_pretrained("pak_legal_llama_adapter")
 print("Training Complete! Adapter saved to 'pak_legal_llama_adapter'")
